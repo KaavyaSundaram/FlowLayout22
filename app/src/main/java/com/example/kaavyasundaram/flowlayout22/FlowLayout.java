@@ -13,6 +13,10 @@ public class FlowLayout extends ViewGroup {
     Drawable d;
     int paddingHorizontal;
     int paddingVertical;
+    int mHorizontalSpacing;
+    int mVerticalSpacing;
+    private static final int DEFAULT_HORIZONTAL_SPACING = 15;
+    private static final int DEFAULT_VERTICAL_SPACING = 15;
 
 
     public FlowLayout(Context context) {
@@ -21,6 +25,25 @@ public class FlowLayout extends ViewGroup {
 
     public FlowLayout(Context context, AttributeSet attrs) {
         super(context, attrs);
+
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.FlowLayout);
+        try {
+            mHorizontalSpacing = a.getDimensionPixelSize(
+                    R.styleable.FlowLayout_horizontal_spacing, DEFAULT_HORIZONTAL_SPACING);
+            mVerticalSpacing = a.getDimensionPixelSize(
+                    R.styleable.FlowLayout_vertical_spacing, DEFAULT_VERTICAL_SPACING);
+        } finally {
+            a.recycle();
+        }
+    }
+
+
+    public void setHorizontalSpacing(int pixelSize) {
+        mHorizontalSpacing = pixelSize;
+    }
+
+    public void setVerticalSpacing(int pixelSize) {
+        mVerticalSpacing = pixelSize;
     }
 
     public FlowLayout(Context context, AttributeSet attrs, int defStyleAttr) {
@@ -30,6 +53,7 @@ public class FlowLayout extends ViewGroup {
     private void init() {
         paddingHorizontal = getResources().getDimensionPixelSize(R.dimen.flowlayout_horizontal_padding);
         paddingVertical = getResources().getDimensionPixelSize(R.dimen.flowlayout_vertical_padding);
+
     }
 
 
@@ -57,18 +81,14 @@ public class FlowLayout extends ViewGroup {
 
         //Measure Width
         if (widthMode == MeasureSpec.EXACTLY) {
-
             //Must be this size
             width = widthSize;
-            Log.i("width1", String.valueOf(width));
         } else if (widthMode == MeasureSpec.AT_MOST) {
             //Can't be bigger than...
             width = Math.min(desiredWidth, widthSize);
-            Log.i("width2", String.valueOf(width));
         } else {
             //Be whatever you want
             width = desiredWidth;
-            Log.i("width3", String.valueOf(width));
         }
 
         //Measure Height
@@ -93,12 +113,9 @@ public class FlowLayout extends ViewGroup {
 
         // TODO Auto-generated method stub
         final int count = getChildCount();
-        Log.i("count", String.valueOf(count));
         int curWidth, curHeight, curLeft, curTop, maxHeight;
-
         //get the available size of child view
         int childLeft = this.getPaddingLeft();
-
         int childTop = this.getPaddingTop();
         int childRight = this.getMeasuredWidth() - this.getPaddingRight();
         int childBottom = this.getMeasuredHeight() - this.getPaddingBottom();
@@ -120,7 +137,7 @@ public class FlowLayout extends ViewGroup {
                 //wrap is reach to the end
                 if (curLeft + curWidth >= childRight) {
                     curLeft = childLeft;
-                    curTop += maxHeight;
+                    curTop += mVerticalSpacing+maxHeight;
                     maxHeight = 0;
                 }
                 //do the layout
@@ -128,7 +145,7 @@ public class FlowLayout extends ViewGroup {
                 //store the max height
                 if (maxHeight < curHeight)
                     maxHeight = curHeight;
-                curLeft += curWidth;
+                curLeft += curWidth+mHorizontalSpacing;
             }
         }
     }
