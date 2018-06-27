@@ -1,4 +1,5 @@
 package com.example.kaavyasundaram.flowlayout22;
+
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.drawable.Drawable;
@@ -11,6 +12,7 @@ import android.view.ViewGroup;
 
 public class FlowLayout extends ViewGroup {
     Drawable d;
+    // int temp=0;
     int paddingHorizontal;
     int paddingVertical;
     int mHorizontalSpacing;
@@ -48,7 +50,7 @@ public class FlowLayout extends ViewGroup {
 
     public FlowLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-       init();
+        init();
     }
     private void init() {
         paddingHorizontal = getResources().getDimensionPixelSize(R.dimen.flowlayout_horizontal_padding);
@@ -61,92 +63,64 @@ public class FlowLayout extends ViewGroup {
     public FlowLayout(Context context, AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
     }
-
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int desiredWidth = 100;
-        int desiredHeight = 100;
+        int childLeft = getPaddingLeft();
+        int childTop = getPaddingTop();
+        Log.i("hiii", String.valueOf(getPaddingTop()));
+        int lineHeight = 0;
+        // 100 is a dummy number, widthMeasureSpec should always be EXACTLY for FlowLayout
+        int myWidth = resolveSize(100, widthMeasureSpec);
+        int wantedHeight = 0;
 
-        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            if (child.getVisibility() == View.GONE) {
+                continue;
+            }
+            // let the child measure itself
+            child.measure(
+                    getChildMeasureSpec(widthMeasureSpec, 0, child.getLayoutParams().width),
+                    getChildMeasureSpec(heightMeasureSpec, 0, child.getLayoutParams().height));
+            int childWidth = child.getMeasuredWidth();
+            int childHeight = child.getMeasuredHeight();
 
-        int width;
-        int height;
-        final View child = getChildAt(0);
-        child.measure(
-                getChildMeasureSpec(widthMeasureSpec, 0, child.getLayoutParams().width),
-                getChildMeasureSpec(heightMeasureSpec, 0, child.getLayoutParams().height));
-
-        //Measure Width
-        if (widthMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            width = widthSize;
-        } else if (widthMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            width = Math.min(desiredWidth, widthSize);
-        } else {
-            //Be whatever you want
-            width = desiredWidth;
+            // line height is the height of current line, should be the height of the highest view
+            lineHeight = Math.max(childHeight, lineHeight);
+            if (childWidth + childLeft + getPaddingRight() > myWidth) {
+                // wrap this line
+                childLeft = getPaddingLeft();
+                childTop += mVerticalSpacing + lineHeight;
+                lineHeight = childHeight;
+            }
+            childLeft += childWidth + mHorizontalSpacing;
         }
-
-        //Measure Height
-        if (heightMode == MeasureSpec.EXACTLY) {
-            //Must be this size
-            height = heightSize;
-        } else if (heightMode == MeasureSpec.AT_MOST) {
-            //Can't be bigger than...
-            height = Math.min(desiredHeight, heightSize);
-        } else {
-            //Be whatever you want
-            height = desiredHeight;
-        }
-        child.measure(4, 5);
-
-        //MUST CALL THIS
-        setMeasuredDimension(width, height);
+        wantedHeight += childTop + lineHeight + getPaddingBottom();
+        setMeasuredDimension(myWidth, resolveSize(wantedHeight, heightMeasureSpec));
     }
 
     @Override
-    protected void onLayout(boolean changed, int l, int t, int r, int b) {
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        int childLeft = getPaddingLeft();
+        int childTop = getPaddingTop();
+        int lineHeight = 0;
+        int myWidth = right - left;
 
-        // TODO Auto-generated method stub
-        final int count = getChildCount();
-        int curWidth, curHeight, curLeft, curTop, maxHeight;
-        //get the available size of child view
-        int childLeft = this.getPaddingLeft();
-        int childTop = this.getPaddingTop();
-        int childRight = this.getMeasuredWidth() - this.getPaddingRight();
-        int childBottom = this.getMeasuredHeight() - this.getPaddingBottom();
-        int childWidth = childRight - childLeft;
-        int childHeight = childBottom - childTop;
-        maxHeight = 0;
-        curLeft = childLeft;
-        curTop = childTop;
-        //walk through each child, and arrange it from left to right
-        for (int i = 0; i < count; i++) {
-            View child = getChildAt(i);
-            if (child.getVisibility() != GONE) {
-                //Get the maximum size of the child
-                child.measure(MeasureSpec.makeMeasureSpec(childWidth, MeasureSpec.AT_MOST),
-                        MeasureSpec.makeMeasureSpec(childHeight, MeasureSpec.AT_MOST));
-                curWidth = child.getMeasuredWidth();
-                System.out.println(curWidth);
-                curHeight = child.getMeasuredHeight();
-                //wrap is reach to the end
-                if (curLeft + curWidth >= childRight) {
-                    curLeft = childLeft;
-                    curTop += mVerticalSpacing+maxHeight;
-                    maxHeight = 0;
-                }
-                //do the layout
-                child.layout(curLeft, curTop, curLeft + curWidth, curTop + curHeight);
-                //store the max height
-                if (maxHeight < curHeight)
-                    maxHeight = curHeight;
-                curLeft += curWidth+mHorizontalSpacing;
+        for (int i = 0; i < getChildCount(); i++) {
+            final View child = getChildAt(i);
+            if (child.getVisibility() == View.GONE) {
+                continue;
             }
+            int childWidth = child.getMeasuredWidth();
+            int childHeight = child.getMeasuredHeight();
+            lineHeight = Math.max(childHeight, lineHeight);
+            if (childWidth + childLeft + getPaddingRight() > myWidth) {
+                childLeft = getPaddingLeft();
+                childTop += mVerticalSpacing + lineHeight;
+                lineHeight = childHeight;
+            }
+            child.layout(childLeft, childTop, childLeft + childWidth, childTop + childHeight);
+            childLeft += childWidth + mHorizontalSpacing;
         }
     }
 }
