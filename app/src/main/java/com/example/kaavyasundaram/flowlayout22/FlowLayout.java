@@ -72,7 +72,6 @@ public class FlowLayout extends ViewGroup {
         final int sizeHeight = MeasureSpec.getSize(heightMeasureSpec) - this.getPaddingTop() - this.getPaddingBottom();
         //For Horizontal
         int childLeft = getPaddingLeft();
-
         int childTop = getPaddingTop();
         int lineHeight = 0;
         int myWidth = resolveSize(100, widthMeasureSpec);
@@ -84,8 +83,6 @@ public class FlowLayout extends ViewGroup {
         int lineWidth = 0;
         int myHeight = resolveSize(100, heightMeasureSpec);
         int wantedWidth = 0;
-        int columnWidth = 0;
-
 
         if (val == val_h) {
             for (int i = 0; i < getChildCount(); i++) {
@@ -112,8 +109,6 @@ public class FlowLayout extends ViewGroup {
 
         } else {
 
-            int totalChildHeight = 0;
-
             for (int i = 0; i < getChildCount(); i++) {
                 final View child = getChildAt(i);
                 if (child.getVisibility() == View.GONE) {
@@ -126,17 +121,17 @@ public class FlowLayout extends ViewGroup {
                 int childHeight = child.getMeasuredHeight();
 
                 lineWidth = Math.max(childWidth, lineWidth);
-                System.out.println("lineWidth = " + lineWidth);
-                childLeft += childWidth + mHorizontalSpacing;
-                if ( childTop + getPaddingBottom() >myHeight) {
+
+                if ( childHeight +childTop + getPaddingBottom() >myHeight) {
                     childLeft=getPaddingLeft();
                     childRight+= mHorizontalSpacing+lineWidth;
                     lineWidth=childWidth;
 
                 }
+                childLeft += childWidth + mHorizontalSpacing;
             }
-            wantedHeight += childRight + lineWidth + getPaddingRight();
-            setMeasuredDimension(myHeight, resolveSize(wantedHeight, heightMeasureSpec));
+            wantedWidth+= childLeft + lineWidth + getPaddingRight();
+            setMeasuredDimension(resolveSize(wantedWidth, widthMeasureSpec),myHeight );
         }
     }
 
@@ -144,8 +139,12 @@ public class FlowLayout extends ViewGroup {
     protected void onLayout ( boolean changed, int left, int top, int right, int bottom){
         int childLeft = getPaddingLeft();
         int childTop = getPaddingTop();
+        int childRight = getPaddingRight();
+        int childBottom = getPaddingBottom();
         int lineHeight = 0;
+        int lineWidth=0;
         int myWidth = right - left;
+        int myHeight= bottom-top;
 
         int orient = this.getOrientation();
         int hori = FlowLayout.HORIZONTAL;
@@ -175,12 +174,14 @@ public class FlowLayout extends ViewGroup {
                 }
                 int childWidth = child.getMeasuredWidth();
                 int childHeight = child.getMeasuredHeight();
-                lineHeight = Math.max(childHeight, lineHeight);
-                  /*  if (childWidth + childLeft + getPaddingRight() > myWidth) {
+
+                lineWidth = Math.max(childWidth, lineWidth);
+                    if (childHeight + childTop + getPaddingBottom() > myHeight) {
                         childLeft = getPaddingLeft();
-                        childTop += mVerticalSpacing + lineHeight;
-                        lineHeight = childHeight;
-                    }*/
+                        childRight+= mHorizontalSpacing+lineWidth;
+                        lineWidth=childWidth;
+                    }
+
                 child.layout(childLeft, childTop, childLeft + childWidth, childTop + childHeight);
                 childTop += childHeight + mVerticalSpacing;
             }
