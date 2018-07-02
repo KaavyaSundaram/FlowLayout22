@@ -69,7 +69,6 @@ public class FlowLayout extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int val = this.getOrientation();
         int val_h = FlowLayout.HORIZONTAL;
-        final int sizeHeight = MeasureSpec.getSize(heightMeasureSpec) - this.getPaddingTop() - this.getPaddingBottom();
         //For Horizontal
         int childLeft = getPaddingLeft();
         int childTop = getPaddingTop();
